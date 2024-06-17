@@ -1,0 +1,5 @@
+- groq llama 70b
+- v0
+- tailwind
+- pillow
+- python standard libaries
