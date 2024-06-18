@@ -13,9 +13,8 @@ pip install mgallery
 ## Features
 
 - Combine images (PNG, JPEG) and text files into a single HTML file
-- Add or replace datetime metadata of images with current datetime
 - Add or replace note metadata of images with a given note
-- Read datetime and note metadata of images
+- Read note metadata of images
 - Supports multiple input files and directories
 
 ## Usage:
@@ -23,24 +22,49 @@ pip install mgallery
 ### Compile Command
 
 Compile images and text files into a single HTML file:
+
 ```
 mgallery compile <input_files> [-o output_file]
 ```
 
-Example:
+#### Example:
+
+Let's say my diary directory is structured like this:
+
+```
+.
+├── june
+│   ├── 01-06-24.txt
+│   ├── 04-06-24.txt
+│   ├── buildspace_s5_w0.png
+│   ├── IMG_20240616_191552.jpg
+│   └── maybe_future_pp.jpg
+└── may
+    ├── 25-05-24.txt
+    ├── 26-05-24.txt
+```
+
+To compile all text and image files without any exclusions, use:
 
 ```
 mgallery compile -o /tmp/output.html
 ```
 
-If not given `input_files`, then it will consider current working directory files as input.
+If `input_files` is not specified, the current working directory files will be used as input.
 
-### Datetime Command
+To compile only selected files, use:
 
-Add or replace datetime metadata of an image with current datetime:
 ```
-mgallery datetime <image_filename>
+mgallery compile june/maybe_future_pp.jpg june/01-06-24.txt -o /tmp/output.html
 ```
+
+To compile files from a directory and a selected file from another directory, use:
+
+```
+mgallery compile june may/25-05-24.txt -o /tmp/output.html
+```
+
+The `-o` or `--output` flag specifies the location of the output file. If not provided, the CLI will create `output.html` in the current working directory.
 
 ### Note Command
 
@@ -51,7 +75,7 @@ mgallery note <image_filename> <note>
 
 ### Read Command
 
-Read datetime and note metadata of an image:
+Read note metadata of an image:
 ```
 mgallery read <image_filename>
 ```

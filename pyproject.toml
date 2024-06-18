@@ -7,7 +7,7 @@ name = "mgallery"
 authors = [
   {name = "Roopkumar Das", email = "roopkumards@gmail.com"},
 ]
-version = "0.1.0"
+version = "0.1.1"
 description = "a cli tool to create gallery out of txt and png/jpeg files"
 readme = "README.md"
 license = {file = "LICENSE.md"}

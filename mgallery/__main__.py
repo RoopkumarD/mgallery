@@ -1,5 +1,4 @@
 import argparse
-import datetime
 from pathlib import Path
 
 from PIL import Image
@@ -12,7 +11,7 @@ def get_items(dir: Path):
     for k in dir.iterdir():
         if k.is_dir() == True:
             temp += get_items(k)
-        elif k.suffix in [".png", ".jpeg", ".txt"]:
+        elif k.suffix in [".png", ".jpeg", ".txt", ".jpg"]:
             temp.append(k)
     return temp
 
@@ -26,7 +25,7 @@ def compile(inputs: list[str], output_path: str | None):
 
         if pat.is_dir() == True:
             files += get_items(pat)
-        elif pat.suffix in [".png", ".jpeg", ".txt"]:
+        elif pat.suffix in [".png", ".jpeg", ".txt", ".jpg"]:
             files.append(pat)
 
     # now sorting them
@@ -49,13 +48,16 @@ def compile(inputs: list[str], output_path: str | None):
     return
 
 
-def read_datetime_note(image_filename: str):
+def read_note(image_filename: str):
     with Image.open(image_filename) as img:
         exif_dict = img.getexif()
-    if 36867 in exif_dict:
-        print(f"datetime: {exif_dict[36867]}")
-    if 270 in exif_dict:
+    if (
+        270 in exif_dict
+        and all(byte == 0 for byte in exif_dict[270].encode("ascii")) == False
+    ):
         print(f"note:\n{exif_dict[270]}")
+    else:
+        print("No Note attached")
     return
 
 
@@ -63,15 +65,6 @@ def add_replace_note(image_filename: str, note: str):
     with Image.open(image_filename) as img:
         exif_dict = img.getexif()
         exif_dict[270] = note
-        img.save(image_filename, exif=exif_dict)
-    return
-
-
-def add_replace_datetime(image_filename: str):
-    utc_timestamp = datetime.datetime.now().strftime("%Y:%m:%d %H:%M:%S")
-    with Image.open(image_filename) as img:
-        exif_dict = img.getexif()
-        exif_dict[36867] = utc_timestamp
         img.save(image_filename, exif=exif_dict)
     return
 
@@ -86,20 +79,6 @@ def main():
     subparsers = global_parser.add_subparsers(
         title="commands", dest="commands", help="mgallery tools"
     )
-
-    # datetime subcommand
-    ardt_parser = subparsers.add_parser(
-        "datetime",
-        help="adds or replaces the datetime metadata of image with current datetime",
-    )
-    ardt_parser.add_argument(
-        dest="image_filename",
-        type=str,
-        nargs=1,
-        metavar="image_filename",
-        help="image file path",
-    )
-    ardt_parser.set_defaults(func=add_replace_datetime)
 
     # note subcommand
     arn_parser = subparsers.add_parser(
@@ -122,9 +101,7 @@ def main():
     arn_parser.set_defaults(func=add_replace_note)
 
     # read exif subcommand
-    rdn_parser = subparsers.add_parser(
-        "read", help="prints out datetime and note metadata of image"
-    )
+    rdn_parser = subparsers.add_parser("read", help="prints out note metadata of image")
     rdn_parser.add_argument(
         dest="image_filename",
         type=str,
@@ -132,7 +109,7 @@ def main():
         metavar="image_filename",
         help="image file path",
     )
-    rdn_parser.set_defaults(func=read_datetime_note)
+    rdn_parser.set_defaults(func=read_note)
 
     # compile subcommand
     com_parser = subparsers.add_parser(
@@ -161,8 +138,6 @@ def main():
 
     if args.commands == None:
         print("usage: mgallery -h")
-    elif args.commands == "datetime":
-        args.func(args.image_filename[0])
     elif args.commands == "note":
         args.func(args.image_filename[0], args.note[0])
     elif args.commands == "read":
